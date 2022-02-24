@@ -28,6 +28,10 @@ Std_Output_Handle EQU -11    ;Консольное окно для вывода 
     Number DD ?
     Number_Str DB 8 dup (0)
     Number_Str_L = 8
+    
+    BUFFER32_STR DB '$' DUP (33)
+    SIGNATURE_STR DB 'Signature: ','$'
+    SIGNATURE_STR_L = $ - SIGNATURE_STR - 1
 ;-------------------------------------------------------------------------------------------
 .CODE ;Открыть сегмент кодов.
 Preobr PROC
@@ -70,10 +74,10 @@ Start:
     ;Вывести строку Not_supp.
     call WriteConsoleA, Handl_Out, offset Not_Supp, Not_Supp_L, offset Lens, 0
     jmp @exit
+
 CPUIDSupp:
     ;Вывести строку Supp.
     call WriteConsoleA, Handl_Out, offset Supp, Supp_L, offset Lens, 0
-
     ;Получение информации о количестве поддерживаемых функций CPUID
     mov EAX, 0
     cpuid
@@ -85,5 +89,20 @@ CPUIDSupp:
     call WriteConsoleA, Handl_Out, offset Str1, Str1_L, offset Lens, 0
     ;Вывести строку Number_Str.
     call WriteConsoleA, Handl_Out, offset Number_Str, Number_Str_L, offset Lens, 0
+    
+    ; Get and print signature as binary number
+    MOV EAX, 1
+    cpuid
+    MOV ECX, 32
+SIG_FORMAT:
+    MOV BL, AL
+    AND BL, 1B
+    ADD BL, '0'
+    MOV BUFFER32_STR[ECX - 1], BL
+    SHR EAX, 1
+    LOOP SIG_FORMAT
+    call WriteConsoleA, Handl_Out, offset SIGNATURE_STR, SIGNATURE_STR_L, offset Lens, 0
+    call WriteConsoleA, Handl_Out, offset BUFFER32_STR, 32, offset Lens, 0
+
 @exit: call ExitProcess ;Завершить программу.
 END Start ;Конец исходного модуля.
