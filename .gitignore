@@ -2,11 +2,13 @@
 
 *.lib
 *.obj
+*.lst
 *.map
 *.exe
 *.tr2
 *.td2
 
+!TASM/*.EXE
 !TASM32/*.EXE
 !/IMPORT32.LIB
 
